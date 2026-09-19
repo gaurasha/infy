@@ -1,0 +1,5 @@
+# GUIDELINES.md: never panic across a domain boundary. Domain crates deny
+# unwrap/expect in non-test code; tests are exempt because a failing test IS
+# the panic we want.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true

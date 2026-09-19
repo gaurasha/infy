@@ -1,0 +1,17 @@
+[package]
+name = "infy-hub"
+version = "0.1.0"
+edition = "2021"
+description = "Where models come from: refs, GGUF selection, download, the local catalogue."
+publish = false
+
+[dependencies]
+infy-kernel = { path = "../kernel" }
+hf-hub = { version = "1", default-features = false, features = ["blocking", "rustls-tls"], optional = true }
+
+[dev-dependencies]
+tempfile = "3"
+
+[features]
+default = ["hf"]
+hf = ["dep:hf-hub"]

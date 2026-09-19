@@ -1,0 +1,22 @@
+# infy — a local inference engine, as a Cargo workspace of portable domain crates.
+#
+# Every crate under crates/ declares its OWN dependencies with explicit versions
+# rather than inheriting them from [workspace.dependencies]. That is deliberate:
+# GUIDELINES.md says a domain folder must work when dragged into another
+# project, and a crate whose Cargo.toml says `serde.workspace = true` does not
+# — it needs this file to exist. Cargo.lock still pins one version per crate
+# across the workspace, so nothing drifts.
+
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+# Tensor math in an unoptimised build is 20-50x slower than optimised, which
+# turns a one-second model test into a minute. Optimise dependencies (candle,
+# gemm, tokenizers) even in dev builds; our own crates stay debuggable.
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

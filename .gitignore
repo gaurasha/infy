@@ -1,0 +1,24 @@
+# NOTE: git has no inline comments in .gitignore -- a trailing "# ..." becomes
+# part of the pattern and silently matches nothing. Keep comments on own lines.
+
+# Build output
+/target/
+/bin/
+
+# Throwaway spikes. Deleted once their finding is recorded in docs/DECISIONS.md.
+/_spike/
+
+# Model weights and infy's own data must never enter the repo. Weights are
+# hundreds of megabytes to hundreds of gigabytes; the default models directory
+# is outside the checkout and these patterns are a second line of defence for
+# anyone who points --models-dir at it.
+*.safetensors
+*.gguf
+*.bin
+*.pt
+*.pth
+/models/
+/data/
+
+# Holds HF_TOKEN. Never tracked.
+.env
