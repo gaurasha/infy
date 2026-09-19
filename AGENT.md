@@ -121,6 +121,13 @@ weights fine and fails at the tokenizer with a message saying so.
 you how to stop it instead; a stray kill of the user's system service would be
 worse than a refusal.
 
+**CI runs the latest stable Rust, and clippy gains lints with every
+release.** A push that is clean locally can fail `make lint` on the runner.
+Before pushing from an older toolchain, run the runner's version:
+`rustup toolchain install stable` then `cargo +stable clippy --workspace
+--all-targets -- -D warnings`. Fix the lint rather than allowing it; every
+one so far pointed at something worth changing.
+
 **The Hugging Face hub is not reachable from every sandbox.** `infy pull`
 fails with the proxy's status code and says so; nothing else in the system
 needs the network.

@@ -192,13 +192,7 @@ impl ModelConfig {
         let head_dim = optional_u64(meta, &key(a, "attention.key_length"))
             .or_else(|| optional_u64(meta, &key(a, "rope.dimension_count")))
             .map(|v| v as usize)
-            .unwrap_or_else(|| {
-                if num_heads == 0 {
-                    0
-                } else {
-                    hidden_size / num_heads
-                }
-            });
+            .unwrap_or_else(|| hidden_size.checked_div(num_heads).unwrap_or(0));
         let vocab_size = optional_u64(meta, &key(a, "vocab_size"))
             .map(|v| v as usize)
             .or_else(|| meta.get("tokenizer.ggml.tokens").and_then(MetaValue::as_array).map(|t| t.len()))

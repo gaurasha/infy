@@ -112,7 +112,7 @@ pub fn load_engine(boot: &Bootstrap, path: &std::path::Path, id: &str) -> Result
 pub fn progress_printer() -> impl FnMut(&str, u64, u64) {
     let mut last_pct = u64::MAX;
     move |file: &str, done: u64, total: u64| {
-        let pct = if total > 0 { done * 100 / total } else { 0 };
+        let pct = (done * 100).checked_div(total).unwrap_or(0);
         if pct != last_pct {
             last_pct = pct;
             eprint!(
