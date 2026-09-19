@@ -131,6 +131,11 @@ fn list_find_and_resolve() {
         "a unique bare file name"
     );
     assert_eq!(hub.find(&r("nothing")).unwrap(), None);
+    assert_eq!(
+        hub.find(&r("loose.gguf")).unwrap().unwrap().name,
+        "loose.gguf",
+        "a bare file name finds the catalogue entry"
+    );
 
     let abs = tmp.path().join("o--r").join("m-Q8_0.gguf");
     let found = hub

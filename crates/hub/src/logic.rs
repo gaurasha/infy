@@ -47,9 +47,9 @@ pub const RUNTIME_PREFIXES: &[&str] = &["ollama", "llamacpp", "lmstudio"];
 /// | `hf:owner/repo/sub/file.gguf` | that exact file |
 /// | `hf:owner/repo@rev...` | any of the above at a revision |
 /// | `owner/repo` | same as `hf:owner/repo` |
-/// | `./x.gguf`, `/x.gguf`, `~/x.gguf`, `x.gguf` | a file on disk |
+/// | `./x.gguf`, `/x.gguf`, `~/x.gguf` | a file on disk |
 /// | `ollama:name`, `llamacpp:name`, `lmstudio:name` | a runtime's model |
-/// | anything else | a name in the models directory |
+/// | anything else, `x.gguf` included | a name in the models directory (then the working directory) |
 pub fn parse_ref(r: &ModelRef) -> Result<Source> {
     let s = r.as_str();
     if let Some((prefix, rest)) = s.split_once(':') {
@@ -69,9 +69,6 @@ pub fn parse_ref(r: &ModelRef) -> Result<Source> {
         }
     }
     if s.starts_with('/') || s.starts_with("./") || s.starts_with("../") || s.starts_with("~/") {
-        return Ok(Source::Path(PathBuf::from(s)));
-    }
-    if s.ends_with(".gguf") && !s.contains('/') {
         return Ok(Source::Path(PathBuf::from(s)));
     }
     if looks_like_repo(s) {

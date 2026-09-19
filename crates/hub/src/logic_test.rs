@@ -58,7 +58,8 @@ fn ref_forms() {
     );
     assert_eq!(
         parse_ref(&r("m.gguf")).unwrap(),
-        Source::Path("m.gguf".into())
+        Source::Local("m.gguf".into()),
+        "a bare file name is looked up, not a path"
     );
     assert_eq!(
         parse_ref(&r("../x/m.gguf")).unwrap(),

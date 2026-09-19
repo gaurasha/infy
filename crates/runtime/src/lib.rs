@@ -29,4 +29,4 @@ pub use logic::{
     install_command, install_hint, parse_models, spec, start_command, Install, RuntimeKind,
     RuntimeSpec, ServedModel, StartOptions, State, SPECS,
 };
-pub use service::{RuntimeConfig, Runtimes, Started, Status, Stopped};
+pub use service::{Installed, RuntimeConfig, Runtimes, Started, Status, Stopped};

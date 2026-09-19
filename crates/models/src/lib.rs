@@ -40,4 +40,5 @@ pub use service::{device, load, LoadOptions};
 
 // Re-exported so the composition root can name a device and a dtype without
 // adding candle to its own manifest for that alone.
+pub use candle_core::quantized::GgmlDType;
 pub use candle_core::{DType, Device};
