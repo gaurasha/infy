@@ -1,0 +1,17 @@
+[package]
+name = "infy-engine"
+version = "0.1.0"
+edition = "2021"
+description = "The native generation loop: tokenise, prefill, decode, sample, stream, prompt cache."
+publish = false
+
+[dependencies]
+infy-kernel = { path = "../kernel" }
+serde = { version = "1", features = ["derive"] }
+minijinja = { version = "2", features = ["json", "loop_controls"] }
+minijinja-contrib = { version = "2", features = ["pycompat"] }
+tokenizers = { version = "0.23", default-features = false, features = ["onig"], optional = true }
+
+[features]
+default = ["tokenizers"]
+tokenizers = ["dep:tokenizers"]
