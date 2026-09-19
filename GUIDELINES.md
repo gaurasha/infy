@@ -200,9 +200,10 @@ day a second architecture lands.
   few milliseconds**, and it is honoured between tokens. This is a system built
   out of long-running generations; an uncancellable one is a hang waiting to
   happen.
-- **`unsafe` lives only in `deps/` adapters**, with a `// SAFETY:` comment, and
-  crates carry `#![deny(unsafe_code)]` with a single `#[allow]` at that site.
-  Today the only one is memory-mapping a GGUF file.
+- **`unsafe` lives only in `deps/` adapters**, with a `// SAFETY:` comment.
+  Today there is none: every crate carries `#![forbid(unsafe_code)]`. The
+  first adapter that needs it relaxes its crate to `deny` and allows the one
+  site, so the diff that introduces `unsafe` is the diff that explains it.
 
 ---
 

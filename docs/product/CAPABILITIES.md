@@ -25,7 +25,7 @@ in the same commit.
 
 | Capability | Status | Where |
 |---|---|---|
-| Load a GGUF: metadata, quantised tensors, memory-mapped | ✅ | `models/deps/gguf.rs` |
+| Load a GGUF: metadata, quantised tensors read on demand | ✅ | `models/deps/gguf.rs` |
 | Llama-family architecture (Llama 2/3, Mistral, Qwen2, SmolLM, TinyLlama) | ✅ | `models/src/llama.rs` |
 | Grouped-query attention, RoPE, RMSNorm, SwiGLU | ✅ | same |
 | Llama 3 RoPE scaling | ✅ | `models/src/logic.rs` |
@@ -42,6 +42,7 @@ in the same commit.
 | Cancellation between tokens, partial output kept | ✅ | `kernel::Cancel` |
 | Usage and timing on every generation | ✅ | `kernel::Completion` |
 | Numerical agreement with a reference implementation on a real checkpoint | ⬜ | needs hub access — see DECISIONS.md |
+| Reading a GGUF produced by llama.cpp's converter | ⬜ | conventions follow its source; not run against a real file yet |
 | Batching / concurrent sessions | ⬜ | phase 2 |
 | safetensors loading | ⬜ | phase 2 |
 | Speculative decoding | ⬜ | phase 3 |
@@ -57,7 +58,7 @@ in the same commit.
 | llama.cpp `llama-server`: detect, start with a GGUF, stop, list, chat | ✅ | same |
 | LM Studio `lms`: detect, start, stop, list, chat | ✅ | same |
 | User-provided binary path and URL per runtime | ✅ | `--runtime-bin`, `--runtime-url` |
-| Install: prints the official command, runs it with `--yes` | ✅ | `runtime/src/service.rs` |
+| Install: prints the official command, runs it with `--yes` | ✅ | `runtime/src/service.rs`; tested against the fake machine only |
 | Streaming chat over OpenAI-compatible SSE with usage | ✅ | `runtime/deps/system.rs` |
 | Pull a model through the runtime (`ollama pull`) | ✅ | `infy pull ollama:...` |
 | Refuses to stop a runtime it did not start, names the right command | ✅ | pid file under the data dir |
@@ -72,7 +73,7 @@ in the same commit.
 |---|---|---|
 | Model refs: `hf:owner/repo`, `:QUANT`, `/file.gguf`, local name, path, `runtime:model` | ✅ | `hub/src/logic.rs` |
 | Choose a GGUF from a repo listing (quant tag, Q4_K_M default, single file) | ✅ | same |
-| Download into the models directory with resume via the hub client | ✅ | `hub/deps/hfhub.rs` |
+| Download into the models directory via the hub client | 🟡 | `hub/deps/hfhub.rs` compiles and is wired; the build sandbox cannot reach the hub, so it has not been run |
 | Local catalogue: what is in the models directory | ✅ | `hub/src/service.rs` |
 | Sharded GGUFs (`-00001-of-00003`) | ⬜ | |
 | ollama registry as a source for native execution | 💭 | its blobs are GGUF |
@@ -113,9 +114,9 @@ in the same commit.
 
 | Area | Shipped | Partial | Interface | Planned | Idea |
 |---|---|---|---|---|---|
-| Native execution | 15 | 1 | 0 | 5 | 0 |
+| Native execution | 15 | 1 | 0 | 6 | 0 |
 | External runtimes | 9 | 0 | 0 | 1 | 0 |
-| Models from somewhere | 4 | 0 | 0 | 1 | 1 |
+| Models from somewhere | 3 | 1 | 0 | 1 | 1 |
 | Interface | 7 | 0 | 0 | 2 | 0 |
 | Platform | 5 | 0 | 0 | 2 | 0 |
 

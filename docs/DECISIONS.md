@@ -40,7 +40,20 @@ including transitive edges. That is exactly the question "can this folder be
 lifted out" asks, and it needs no JSON parsing, so the check runs anywhere
 cargo does.
 
-### 3. Tensor code must be optimised even in dev builds
+### 3. RoPE convention is a property of the architecture, from llama.cpp's table
+
+llama.cpp's converter permutes Llama's Q and K projections so that its
+"normal" rotary embedding (adjacent pairs) is correct, and leaves Qwen2 in
+the NeoX layout (two halves). `Architecture::rope_interleaved` encodes that
+table, and the model applies candle's `rope_i` or `rope` accordingly. The
+cache-consistency tests pass for both, but they cannot tell a wrong
+convention from a right one -- a test model written and read by the same
+code agrees with itself either way. **Only a real llama.cpp-produced file
+can confirm this**, which is the first thing to run on a machine that can
+download one. If a Llama file produces confident nonsense, this table is the
+first suspect.
+
+### 4. Tensor code must be optimised even in dev builds
 
 A candle matmul at `opt-level = 0` is 20-50x slower than at `3`. With
 `[profile.dev.package."*"] opt-level = 3` the dependency crates are optimised
@@ -54,9 +67,32 @@ and what it does *not* show.
 
 | What | Where | Shows | Does not show |
 |---|---|---|---|
-| KV cache consistency: incremental logits == full-prefill logits on a random 2-layer Llama | `crates/models/src/service_test.rs` | the cache, RoPE offsets and causal mask are consistent with each other | that the architecture matches Hugging Face's numerically (needs a real checkpoint) |
-| GGUF round trip: write a tiny model, read it back, identical logits | same | tensor naming, metadata parsing and quantised loading agree with the in-memory model | compatibility with a llama.cpp-produced file (needs one) |
-| Tokenizer rebuilt from GGUF metadata round-trips text | `crates/engine/src/deps/tokenizers_test.rs` | the BPE / Unigram reconstruction is self-consistent | byte-exact agreement with `tokenizer.json` for a real model |
+| KV cache consistency: incremental, chunked, after-truncate and across-growth logits == full-prefill logits, for Llama and Qwen2 layouts | `crates/models/src/service_test.rs` | the cache, RoPE offsets and causal mask are consistent with each other | that the architecture matches Hugging Face's numerically (needs a real checkpoint) |
+| GGUF round trip: write a tiny model, read it back, identical logits and metadata | same | tensor naming, metadata parsing and quantised loading agree with the in-memory model | compatibility with a llama.cpp-produced file (needs one) |
+| Tokenizer rebuilt from GGUF metadata round-trips text, folds merges, keeps control tokens whole, reports incomplete UTF-8 | `crates/engine/src/deps/tokenizers_test.rs` | the BPE / Unigram reconstruction is self-consistent | byte-exact agreement with `tokenizer.json` for a real model |
+| Sampling, stop sequences, streaming deltas, prompt-cache plans, three real-world chat templates | `crates/engine/src/logic_test.rs` | the pure core does what the tables say | nothing about any model |
+| Generation end to end on the in-memory model: EOS, length, stop held back across tokens, cancel keeps partial text, prompt cache feeds only the tail, BOS once | `crates/engine/src/service_test.rs` | the loop's bookkeeping | throughput |
+| Runtime detect/start/stop/install/models/chat against a fake machine and a fake server | `crates/runtime/src/service_test.rs` | every decision and every message | that a real ollama behaves as the fake does |
+| HTTP API: JSON and SSE bodies, error envelope, disconnect cancels | `crates/server/src/service_test.rs` | the protocol as clients see it | |
+| The real binary: `models`, `generate` through the chat template, raw, a not-found exit code, `serve` answering over HTTP | `crates/infy/tests/cli.rs` | file → loader → model → tokenizer → engine → CLI and server hold together | anything about output quality (random weights) |
+
+`make check` runs 122 tests across the eight crates, then the two
+architecture checks.
+
+### Measured on the build sandbox (4 cores, no GPU, release build)
+
+Random-weight models written by the same code, greedy, 64 generated tokens.
+These say nothing about quality and everything about the plumbing's cost.
+
+| Model | Params | File | Prompt | Time to first token | Decode |
+|---|---|---|---|---|---|
+| 2 layers, hidden 32 | ~50k | 35 KB Q8_0 | 24 tok | 0.00 s | 2985 tok/s |
+| 12 layers, hidden 512, 8 heads / 4 KV | ~30M | 30 MB Q8_0 | 47 tok | 0.37 s | 87 tok/s |
+
+The 30M model's decode is ~5 GFLOP/s and its prefill ~8 GFLOP/s: candle's
+CPU quantised kernels on four sandbox cores, no AVX-512. The numbers that
+matter are the ones a real 1–3B model gives on a real machine, and those
+are the first thing to record on one. The release binary is 23.7 MB.
 
 ## Verified environment facts
 

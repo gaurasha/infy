@@ -108,6 +108,7 @@ specific message with the fix where one exists.
 - [x] ollama, llama.cpp and LM Studio: detect, start, stop, install hint, list, chat
 - [x] OpenAI-compatible server: chat completions (streaming and not), completions, models
 - [x] Usage, timing and the exact prompt as sent on every call
+- [x] End to end through the real binary against a generated GGUF, in the test suite
 - [ ] A real checkpoint run end to end (the build sandbox cannot reach the hub -- see DECISIONS.md)
 - [ ] CUDA and Metal devices (wired through features, not yet exercised)
 - [ ] Batching and concurrent sessions
