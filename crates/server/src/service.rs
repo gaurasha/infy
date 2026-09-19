@@ -284,24 +284,25 @@ async fn completions(
     if req.stream.unwrap_or(false) {
         let hint = model.clone().unwrap_or_default();
         return spawn_stream(
-            s.ids.clone(),
-            s.clock.clone(),
+            &s,
             "cmpl",
             hint,
             move |cancel, sink| backend.complete(cancel, model.as_deref(), &prompt, &params, sink),
-            None,
-            |id, created, model, text| {
-                json(&completion_chunk(id, created, model, text, None, None))
-            },
-            |id, created, c| {
-                json(&completion_chunk(
-                    id,
-                    created,
-                    &c.model,
-                    "",
-                    Some(c.finish),
-                    Some(c.usage),
-                ))
+            Framing {
+                first: None,
+                delta: |id, created, model, text| {
+                    json(&completion_chunk(id, created, model, text, None, None))
+                },
+                last: |id, created, c| {
+                    json(&completion_chunk(
+                        id,
+                        created,
+                        &c.model,
+                        "",
+                        Some(c.finish),
+                        Some(c.usage),
+                    ))
+                },
             },
         );
     }
